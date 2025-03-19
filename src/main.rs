@@ -1,5 +1,4 @@
 use macroquad::prelude::*;
-use std::io;
 
 const TILE_SIZE: f32 = 32.0; // each tile will be drawn at 32x32 pixels
 
@@ -26,11 +25,13 @@ async fn main() {
         // Draw the map
         game_map.draw(32.0);
 
+		let fps = get_fps();
+
         // Example draw for the player:
         draw_rectangle(player.x, player.y, 32.0, 32.0, YELLOW);
 
         draw_text(
-            format!("Toggle gravity using G key. Press ESC to quit. Gravity: {} vx: {} vy: {} g: {}", if player.gravity() > 0.0 { "on" } else { "off" }, player.vy(), player.vx(), player.gravity()).as_str(),
+            format!("Toggle gravity using G key. Press ESC to quit. Gravity: {} vx: {} vy: {} g: {} fps: {}", if player.gravity() > 0.0 { "on" } else { "off" }, player.vy(), player.vx(), player.gravity(), fps).as_str(),
             20.0,
             20.0,
             24.0,
@@ -46,16 +47,16 @@ async fn main() {
         }
 
         if is_key_down(KeyCode::Left) {
-            player.move_left(&game_map)
+            player.move_left()
         }
         if is_key_down(KeyCode::Right) {
-            player.move_right(&game_map)
+            player.move_right()
         }
         if is_key_down(KeyCode::Up) {
-            player.move_up(&game_map)
+            player.move_up()
         }
         if is_key_down(KeyCode::Down) {
-            player.move_down(&game_map)
+            player.move_down()
         }
         if is_key_pressed(KeyCode::G) {
             player.gravity_toggle()
