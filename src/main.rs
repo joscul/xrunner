@@ -13,7 +13,7 @@ use player::Player;
 #[macroquad::main(window_conf)]
 async fn main() {
     // For demonstration, create a player
-    let mut player = Player::new(100.0, 100.0);
+    let mut player = Player::new(32.0, 32.0);
 
     let game_map = Map::from_file("maps/map1.txt");
 
@@ -30,7 +30,7 @@ async fn main() {
         draw_rectangle(player.x, player.y, 32.0, 32.0, YELLOW);
 
         draw_text(
-            "Map loaded from map1.txt. Press ESC to quit.",
+            format!("Toggle gravity using G key. Press ESC to quit. Gravity: {} vx: {} vy: {} g: {}", if player.gravity() > 0.0 { "on" } else { "off" }, player.vy(), player.vx(), player.gravity()).as_str(),
             20.0,
             20.0,
             24.0,
@@ -46,10 +46,19 @@ async fn main() {
         }
 
         if is_key_down(KeyCode::Left) {
-            player.move_left()
+            player.move_left(&game_map)
         }
         if is_key_down(KeyCode::Right) {
-            player.move_right()
+            player.move_right(&game_map)
+        }
+        if is_key_down(KeyCode::Up) {
+            player.move_up(&game_map)
+        }
+        if is_key_down(KeyCode::Down) {
+            player.move_down(&game_map)
+        }
+        if is_key_pressed(KeyCode::G) {
+            player.gravity_toggle()
         }
 
         // Next frame
