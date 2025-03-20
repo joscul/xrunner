@@ -36,7 +36,7 @@ async fn main() {
 						Command::RemoveEntity(ch, tile_x, tile_y) => {
 							game_map.remove_entity(ch, tile_x, tile_y);
 						},
-						Command::DisplayWinScreen(tile_x, tile_y) => {
+						Command::DisplayWinScreen(_tile_x, _tile_y) => {
 							current_screen = GameState::WinScreen;
 						}
 					}

@@ -2,4 +2,6 @@
 /target/
 /Cargo.lock
 node_modules/
+release/**
+xrunner.zip
 **.swp
