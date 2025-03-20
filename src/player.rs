@@ -1,4 +1,7 @@
+
 use crate::map::Map;
+use crate::command::Command;
+
 use macroquad::prelude::*;
 pub struct Player {
 	pub x: f32,
@@ -13,12 +16,12 @@ impl Player {
 	// new player with x and y coords.
 	pub fn new(x: f32, y: f32) -> Self {
 		Player {
-			x, y, vx: 0.0, vy: 0.0, g: 0.0,
+			x, y, vx: 0.0, vy: 0.0, g: 0.1,
 		}
 	}
 
 	// update player position on map and draw it.
-	pub fn update(&mut self, map: &Map) {
+	pub fn update(&mut self, map: &Map) -> Vec<Command> {
 
 		// player is falling more and more as default. This is gravity.
 		if self.has_gravity() {
@@ -26,29 +29,55 @@ impl Player {
 		} else {
 			self.update_without_gravity(map);
 		}
+
+		let mut commands = Vec::new();
+
+		// check if we have a collision with an entity.
+		match map.raycast_any((self.center_x(), self.center_y()), (0.0, 1.0), 100.0, 'g') {
+			Some((dist, tile_x, tile_y)) => {
+				if dist <= 16.0 {
+					self.gravity_toggle();
+					commands.push(Command::RemoveEntity('g', tile_x, tile_y));
+				}
+			}
+			None => {
+			}
+		}
+
+		match map.raycast_any((self.center_x(), self.center_y()), (0.0, 1.0), 100.0, 'p') {
+			Some((dist, tile_x, tile_y)) => {
+				if dist <= 16.0 {
+					commands.push(Command::DisplayWinScreen(tile_x, tile_y));
+				}
+			}
+			None => {
+			}
+		}
+
+		return commands;
 	}
 
 	fn update_with_gravity(&mut self, map: &Map) {
 		let delta = get_frame_time() * 100.0;
-		self.vy += self.gravity();
+		self.vy += self.gravity() * delta;
 
 		let search_distance = 100.0;
 
-		let mut distance = f32::INFINITY;
+		let mut y_distance = f32::INFINITY;
 
 		// check if we are standing on something.
 		if self.vy > 0.0 {
 			// moving down.
 			match map.raycast((self.right() - 1.0, self.bottom()), (0.0, 1.0), search_distance) {
 				Some(dist) => {
-					distance = f32::min(dist, distance);
+					y_distance = f32::min(dist, y_distance);
 				}
 				None => {
 				}
 			}
 			match map.raycast((self.left() + 1.0, self.bottom()), (0.0, 1.0), search_distance) {
 				Some(dist) => {
-					distance = f32::min(dist, distance);
+					y_distance = f32::min(dist, y_distance);
 				}
 				None => {
 				}
@@ -57,29 +86,22 @@ impl Player {
 			// moving up.
 			match map.raycast((self.left() + 1.0, self.top()), (0.0, -1.0), search_distance) {
 				Some(dist) => {
-					distance = f32::min(dist, distance);
+					y_distance = f32::min(dist, y_distance);
 				}
 				None => {
 				}
 			}
 			match map.raycast((self.right() - 1.0, self.top()), (0.0, -1.0), search_distance) {
 				Some(dist) => {
-					distance = f32::min(dist, distance);
+					y_distance = f32::min(dist, y_distance);
 				}
 				None => {
 				}
 			}
 		}
 
-		if distance < f32::abs(self.vy * delta) {
-			self.vy = (self.vy / f32::abs(self.vy)) * distance / delta;
-			if (f32::abs(self.vy) < f32::EPSILON) {
-				self.vy = 0.0;
-			}
-		}
-
 		// check if we are moving right or left. if so, we can only move some distance.
-		distance = f32::INFINITY;
+		let mut distance = f32::INFINITY;
 		if self.vx > 0.0 {
 			// moving right.
 			match map.raycast((self.right(), self.bottom() - 1.0), (1.0, 0.0), search_distance) {
@@ -114,21 +136,29 @@ impl Player {
 			}
 		}
 
-		//let mut vy = self.vy * self.vy.abs().sqrt();
+		let mut vy = self.vy * self.vy.abs().sqrt();
 
-		/*if vy > 10.0 {
-			vy = 10.0;
-		}*/
+		if vy > 15.0 {
+			vy = 15.0;
+		}
 
 		if distance < f32::abs(self.vx * delta) {
 			self.vx = (self.vx / f32::abs(self.vx)) * distance / delta;
-			if (f32::abs(self.vx) < f32::EPSILON) {
+			if f32::abs(self.vx) < f32::EPSILON {
 				self.vx = 0.0;
 			}
 		}
 
+		if y_distance < f32::abs(vy * delta) {
+			vy = (vy / f32::abs(vy)) * y_distance / delta;
+			if f32::abs(vy) < f32::EPSILON {
+				self.vy = 0.0;
+				vy = 0.0;
+			}
+		}
+
 		self.x += self.vx * delta;
-		self.y += self.vy * delta;
+		self.y += vy * delta;
 
 		// reset
 		self.vx = 0.0;
@@ -211,14 +241,14 @@ impl Player {
 
 		if distance < f32::abs(self.vx * delta) {
 			self.vx = (self.vx / f32::abs(self.vx)) * distance / delta;
-			if (f32::abs(self.vx) < f32::EPSILON) {
+			if f32::abs(self.vx) < f32::EPSILON {
 				self.vx = 0.0;
 			}
 		}
 
 		if distance < f32::abs(self.vy * delta) {
 			self.vy = (self.vy / f32::abs(self.vy)) * distance / delta;
-			if (f32::abs(self.vy) < f32::EPSILON) {
+			if f32::abs(self.vy) < f32::EPSILON {
 				self.vy = 0.0;
 			}
 		}
@@ -251,7 +281,7 @@ impl Player {
 				}
 			}
 			if distance == 0.0 {
-				self.vy = -5.0;
+				self.vy = -4.1;
 			}
 		}
 	}
@@ -278,8 +308,10 @@ impl Player {
 		}
 	}
 
-	pub fn move_up(&mut self) {
+	pub fn move_up(&mut self, map: &Map) {
 		if self.gravity() > 0.0 {
+			// jump.
+			self.jump(map);
 		} else {
 			if self.vy == 0.0 && self.vx == 0.0 {
 				self.vy = -6.0;
@@ -296,12 +328,12 @@ impl Player {
 		}
 	}
 
-	pub fn center(&self) -> f32 {
+	pub fn center_x(&self) -> f32 {
 		return self.x + 16.0;
 	}
 
 	pub fn center_y(&self) -> f32 {
-		return self.y + 16.0;
+		return self.y - 16.0;
 	}
 
 	pub fn left(&self) -> f32 {
@@ -318,10 +350,6 @@ impl Player {
 
 	pub fn top(&self) -> f32 {
 		return self.y;
-	}
-
-	pub fn delta() -> f32 {
-		return 0.1;
 	}
 
 	pub fn gravity(&self) -> f32 {

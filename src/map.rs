@@ -5,26 +5,16 @@ pub struct Map {
 	pub tiles: Vec<Vec<char>>,
 	pub width: usize,
 	pub height: usize,
+	sprite_bg1: Texture2D,
 }
 
 impl Map {
 
-	pub fn new(tiles: Vec<Vec<char>>) -> Self {
-		let height = tiles.len();
-		let width = if height > 0 {
-			tiles[0].len()
-		} else {
-			0
-		};
+	pub async fn from_file(path: &str) -> Self {
 
-		Map {
-			tiles,
-			width,
-			height,
-		}
-	}
+		let sprite_bg1 = load_texture("sprites/bg1.png").await.unwrap();
+		sprite_bg1.set_filter(FilterMode::Nearest);
 
-	pub fn from_file(path: &str) -> Self {
 		let content = std::fs::read_to_string(path).unwrap();
 
 		let tiles: Vec<Vec<char>> = content
@@ -43,14 +33,7 @@ impl Map {
 			tiles,
 			width,
 			height,
-		}
-	}
-
-	pub fn get_tiles(&self, row: usize, col: usize) -> Option<char> {
-		if row < self.height && col < self.height {
-			Some(self.tiles[row][col])
-		} else {
-			None
+			sprite_bg1,
 		}
 	}
 
@@ -62,11 +45,28 @@ impl Map {
 				let x = col_index as f32 * tile_size;
 				let y = row_index as f32 * tile_size;
 				match tile {
-					'x' => {
-						draw_rectangle(x, y, tile_size, tile_size, DARKGRAY);
-					}
 					' ' => {
 						draw_rectangle(x, y, tile_size, tile_size, SKYBLUE);
+					}
+					'x' => {
+						let (u1, _u2, r1, d1, l1) = self.get_solid_tile_context(row_index, col_index);
+						if !u1 && r1 && d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 1.0*32.0, 0.0*32.0, 0.0); }
+						else if !u1 && r1 && !d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 1.0*32.0, 0.0*32.0, 0.0); }
+						else if !u1 && r1 && d1 && !l1 { self.texture_rot(self.sprite_bg1, x, y, 0.0*32.0, 0.0*32.0, 0.0); }
+						else if !u1 && !r1 && d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 2.0*32.0, 0.0*32.0, 0.0); }
+						else if !u1 && r1 && !d1 && !l1 { self.texture_rot(self.sprite_bg1, x, y, 0.0*32.0, 0.0*32.0, 0.0); }
+						else if !u1 && !r1 && !d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 2.0*32.0, 0.0*32.0, 0.0); }
+						else if !u1 && !r1 && !d1 && !l1 { self.texture_rot(self.sprite_bg1, x, y, 5.0*32.0, 1.0*32.0, 0.0); }
+						else if u1 && !r1 && !d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 5.0*32.0, 5.0*32.0, 0.0); }
+						else if u1 && !r1 && !d1 && !l1 { self.texture_rot(self.sprite_bg1, x, y, 4.0*32.0, 0.0*32.0, 180.0); }
+						else if u1 && !r1 && d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 5.0*32.0, 5.0*32.0, 0.0); }
+						else if u1 && r1 && !d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 4.0*32.0, 5.0*32.0, 270.0); }
+						else if u1 && r1 && d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 11.0*32.0, 1.0*32.0, 180.0); }
+						else if u1 && r1 && d1 && !l1 { self.texture_rot(self.sprite_bg1, x, y, 4.0*32.0, 5.0*32.0, 0.0); }
+						else { self.texture(self.sprite_bg1, x, y, 3.0*32.0, 0.0); }
+					}
+					'g' => {
+						self.texture_rot(self.sprite_bg1, x, y, 10.0*32.0, 7.0*32.0, 0.0);
 					}
 					_ => {
 						draw_rectangle(x, y, tile_size, tile_size, PINK);
@@ -76,17 +76,56 @@ impl Map {
 		}
 	}
 
-	pub fn angle_between(p1: (f32, f32), p2: (f32, f32)) -> f32 {
-		let dot = p1.0 * p2.0 + p1.1 * p2.1; // dot product
-		let mag1 = (p1.0 * p1.0 + p1.1 * p1.1).sqrt();
-		let mag2 = (p2.0 * p2.0 + p2.1 * p2.1).sqrt();
+	fn get_solid_tile_context(&self, row: usize, col: usize) -> (bool, bool, bool, bool, bool) {
 
-		(dot / (mag1 * mag2)).acos()
+		let is_x = |r: isize, c: isize| -> bool {
+			if r >= 0 && c >= 0 && (r as usize) < self.height && (c as usize) < self.width {
+				self.tiles[r as usize][c as usize] == 'x'
+			} else {
+				true
+			}
+		};
+
+		let u1 = is_x(row as isize - 1, col as isize);  // up
+		let u2 = is_x(row as isize - 2, col as isize);  // up two
+		let r1 = is_x(row as isize, col as isize + 1);  // right
+		let l1 = is_x(row as isize, col as isize - 1);  // left
+		let d1 = is_x(row as isize + 1, col as isize);  // down
+
+		(u1, u2, r1, d1, l1)
 	}
 
-	pub fn vec_len(p1: (f32, f32)) -> f32 {
-		(p1.0 * p1.0 + p1.1 * p1.1).sqrt()
+	fn texture(&self, image: Texture2D, x: f32, y: f32, pos_x: f32, pos_y: f32) {
+		draw_texture_ex(
+			image,
+			x,
+			y,
+			WHITE,
+			DrawTextureParams {
+				dest_size: Some(vec2(32.0, 32.0)),
+				// If your sprite has a known tile size, specify it as the source rect.
+				// For example, if it's 16x16:
+				source: Some(Rect::new(pos_x, pos_y, 32.0, 32.0)),
+				..Default::default()
+			},
+		);
 	}
+
+	fn texture_rot(&self, image: Texture2D, x: f32, y: f32, pos_x: f32, pos_y: f32, rotation_deg: f32) {
+	draw_texture_ex(
+		image,
+		x,
+		y,
+		WHITE,
+		DrawTextureParams {
+			dest_size: Some(vec2(32.0, 32.0)),
+			source: Some(Rect::new(pos_x, pos_y, 32.0, 32.0)),
+			rotation: rotation_deg.to_radians(),
+			pivot: None,
+			..Default::default()
+		},
+	);
+}
 
 	// Returns `Some((t_enter, (ix, iy)))` if there's a valid intersection in front of `ray_origin`;
 	// otherwise `None`.
@@ -147,6 +186,10 @@ impl Map {
 	 * Returns the distance as a number between the point (x,y) and the closest solid in the direction (dir_x, dir_y)
 	 * */
 	pub fn raycast(&self, start: (f32, f32), dir: (f32, f32), distance: f32) -> Option<f32> {
+		self.raycast_any(start, dir, distance, 'x').map(|(result, _, _)| result)
+	}
+
+	pub fn raycast_any(&self, start: (f32, f32), dir: (f32, f32), distance: f32, solid: char) -> Option<(f32, usize, usize)> {
 		// How far we step forward each iteration.
 		let step_size = 19.0_f32;
 
@@ -165,11 +208,11 @@ impl Map {
 			}
 
 			// Check if we hit a "solid" tile.
-			if let Some((tile_x, tile_y)) = self.get_solid(pos.0, pos.1) {
-				// Assume (tile_x, tile_y) is the top-left corner of a 32x32 tile.
-				// So if y is increasing downward, the bottom-right corner is (tile_x + 32, tile_y + 32).
-				let box_min = (tile_x, tile_y);
-				let box_max = (tile_x + 32.0, tile_y + 32.0);
+			if let Some((tile_pos_x, tile_pos_y, tile_x, tile_y)) = self.get_solid(pos.0, pos.1, solid) {
+				// Assume (tile_pos_x, tile_pos_y) is the top-left corner of a 32x32 tile.
+				// So if y is increasing downward, the bottom-right corner is (tile_pos_x + 32, tile_y + 32).
+				let box_min = (tile_pos_x, tile_pos_y);
+				let box_max = (tile_pos_x + 32.0, tile_pos_y + 32.0);
 
 				// Check for intersection using our helper.
 				if let Some((t_enter, (hit_x, hit_y))) = Map::ray_box_intersection(start, dir, box_min, box_max) {
@@ -184,7 +227,7 @@ impl Map {
 
 						//draw_line(start.0, start.1, start.0 + 30.0, start.1, 2.0, GREEN);
 
-						return Some(intersection_dist);
+						return Some((intersection_dist, tile_x, tile_y));
 					}
 				}
 			}
@@ -193,20 +236,7 @@ impl Map {
 		None
 	}
 
-	pub fn is_solid(&self, x: f32, y: f32) -> bool {
-		let tile_x = (x / 32.0).floor() as usize;
-		let tile_y = (y / 32.0).floor() as usize;
-
-		if tile_x >= self.width || tile_y >= self.height {
-			return true;
-		}
-		match self.tiles[tile_y][tile_x] {
-			' ' => false,
-			_   => true,
-		}
-	}
-
-	pub fn get_solid(&self, x: f32, y: f32) -> Option<(f32, f32)> {
+	pub fn get_solid(&self, x: f32, y: f32, solid: char) -> Option<(f32, f32, usize, usize)> {
 		let tile_x = (x / 32.0).floor() as usize;
 		let tile_y = (y / 32.0).floor() as usize;
 
@@ -216,14 +246,24 @@ impl Map {
 
 
 		match self.tiles[tile_y][tile_x] {
-			' ' => {
+			tile if tile == solid   => {
+				return Some(((tile_x as f32) * 32.0, (tile_y as f32) * 32.0, tile_x, tile_y))
+			}
+			_ => {
 				return None;
 			}
-			_   => {
-				return Some(((tile_x as f32) * 32.0, (tile_y as f32) * 32.0))
-			}
 		};
+	}
 
+	pub fn remove_entity(&mut self, solid: char, tile_x :usize, tile_y :usize) {
+
+		if let Some(row) = self.tiles.get_mut(tile_y) {
+			if let Some(tile) = row.get_mut(tile_x) {
+				if *tile == solid {
+					*tile = ' ';
+				}
+			}
+		}
 	}
 }
 
@@ -241,6 +281,6 @@ mod tests {
 
 		let result = map.raycast(start, dir, distance);
 
-		assert_eq!(result, Some(64.0));
+		assert_eq!(result, Some(64.0, _, _));
 	}
 }
