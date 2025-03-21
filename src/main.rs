@@ -14,6 +14,7 @@ use command::Command;
 enum GameState {
 	GamePlay,
 	WinScreen,
+	Exit,
 }
 
 #[macroquad::main(window_conf)]
@@ -24,7 +25,7 @@ async fn main() {
 	let mut current_map: i32 = 1;
 
 	// Create a player
-	let mut player = Player::new();
+	let mut player = Player::new().await;
 
 	// Load a map
 	let mut game_map = Map::from_file(map_file(current_map)).await;
@@ -71,7 +72,7 @@ async fn main() {
 							player.reset();
 						},
 						Command::Exit() => {
-							break;
+							current_state = GameState::Exit;
 						}
 					}
 				}
@@ -84,6 +85,9 @@ async fn main() {
 				if is_key_pressed(KeyCode::Escape) {
 					break;
 				}
+			}
+			GameState::Exit => {
+				break
 			}
 		}
 

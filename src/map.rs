@@ -116,20 +116,20 @@ impl Map {
 	}
 
 	fn texture_rot(&self, image: Texture2D, x: f32, y: f32, pos_x: i32, pos_y: i32, rotation_deg: f32) {
-	draw_texture_ex(
-		image,
-		x,
-		y,
-		WHITE,
-		DrawTextureParams {
-			dest_size: Some(vec2(Self::TILE_SIZE, Self::TILE_SIZE)),
-			source: Some(Rect::new(pos_x as f32 * Self::TILE_SIZE, pos_y as f32 * Self::TILE_SIZE, Self::TILE_SIZE, Self::TILE_SIZE)),
-			rotation: rotation_deg.to_radians(),
-			pivot: None,
-			..Default::default()
-		},
-	);
-}
+		draw_texture_ex(
+			image,
+			x,
+			y,
+			WHITE,
+			DrawTextureParams {
+				dest_size: Some(vec2(Self::TILE_SIZE, Self::TILE_SIZE)),
+				source: Some(Rect::new(pos_x as f32 * Self::TILE_SIZE, pos_y as f32 * Self::TILE_SIZE, Self::TILE_SIZE, Self::TILE_SIZE)),
+				rotation: rotation_deg.to_radians(),
+				pivot: None,
+				..Default::default()
+			},
+		);
+	}
 
 	// Returns `Some((t_enter, (ix, iy)))` if there's a valid intersection in front of `ray_origin`;
 	// otherwise `None`.

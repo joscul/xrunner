@@ -6,3 +6,8 @@ edition = "2021"
 [dependencies]
 macroquad = "0.3"
 
+# existing bin (optional, if you want to keep running locally)
+[[bin]]
+name = "xrunner"
+path = "src/main.rs"
+

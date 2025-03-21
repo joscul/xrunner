@@ -9,14 +9,19 @@ pub struct Player {
 	pub vx: f32,
 	pub vy: f32,
 	pub g: f32,
+	sprite_bg1: Texture2D,
 }
 
 impl Player {
 
 	// new player with x and y coords.
-	pub fn new() -> Self {
+	pub async fn new() -> Self {
+
+		let sprite_bg1 = load_texture("sprites/bg1.png").await.unwrap();
+		sprite_bg1.set_filter(FilterMode::Nearest);
+
 		Player {
-			x: Map::TILE_SIZE, y: Map::TILE_SIZE, vx: 0.0, vy: 0.0, g: 0.1,
+			x: Map::TILE_SIZE, y: Map::TILE_SIZE, vx: 0.0, vy: 0.0, g: 0.1, sprite_bg1: sprite_bg1,
 		}
 	}
 
@@ -60,7 +65,8 @@ impl Player {
 	// draw the player tile.
 	pub fn draw(&self) {
 		// Example draw for the player:
-		draw_rectangle(self.x, self.y, 32.0, 32.0, YELLOW);
+		//draw_rectangle(self.x, self.y, 32.0, 32.0, YELLOW);
+		self.texture_rot(self.sprite_bg1, self.x, self.y, 11, 7, 0.0);
 	}
 
 	pub fn reset(&mut self) {
@@ -392,6 +398,22 @@ impl Player {
 		} else {
 			return false
 		}
+	}
+
+	fn texture_rot(&self, image: Texture2D, x: f32, y: f32, pos_x: i32, pos_y: i32, rotation_deg: f32) {
+		draw_texture_ex(
+			image,
+			x,
+			y,
+			WHITE,
+			DrawTextureParams {
+				dest_size: Some(vec2(Map::TILE_SIZE, Map::TILE_SIZE)),
+				source: Some(Rect::new(pos_x as f32 * Map::TILE_SIZE, pos_y as f32 * Map::TILE_SIZE, Map::TILE_SIZE, Map::TILE_SIZE)),
+				rotation: rotation_deg.to_radians(),
+				pivot: None,
+				..Default::default()
+			},
+		);
 	}
 
 
