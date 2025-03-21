@@ -14,9 +14,9 @@ pub struct Player {
 impl Player {
 
 	// new player with x and y coords.
-	pub fn new(x: f32, y: f32) -> Self {
+	pub fn new() -> Self {
 		Player {
-			x, y, vx: 0.0, vy: 0.0, g: 0.1,
+			x: Map::TILE_SIZE, y: Map::TILE_SIZE, vx: 0.0, vy: 0.0, g: 0.1,
 		}
 	}
 
@@ -47,7 +47,7 @@ impl Player {
 		match map.raycast_any((self.center_x(), self.center_y()), (0.0, 1.0), 100.0, 'p') {
 			Some((dist, tile_x, tile_y)) => {
 				if dist <= 16.0 {
-					commands.push(Command::DisplayWinScreen(tile_x, tile_y));
+					commands.push(Command::LoadNextMap(tile_x, tile_y));
 				}
 			}
 			None => {
@@ -55,6 +55,20 @@ impl Player {
 		}
 
 		return commands;
+	}
+
+	// draw the player tile.
+	pub fn draw(&self) {
+		// Example draw for the player:
+		draw_rectangle(self.x, self.y, 32.0, 32.0, YELLOW);
+	}
+
+	pub fn reset(&mut self) {
+		self.x = Map::TILE_SIZE;
+		self.y = Map::TILE_SIZE;
+		self.vx = 0.0;
+		self.vy = 0.0;
+		self.g = 0.1;
 	}
 
 	fn update_with_gravity(&mut self, map: &Map) {

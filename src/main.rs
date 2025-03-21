@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use std::path::Path;
 
 mod map;
 mod player;
@@ -9,6 +10,7 @@ use map::Map;
 use player::Player;
 use command::Command;
 
+// Helper enum for storing what state the game is in.
 enum GameState {
 	GamePlay,
 	WinScreen,
@@ -16,67 +18,62 @@ enum GameState {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-	let mut current_screen = GameState::GamePlay;
-	// For demonstration, create a player
-	let mut player = Player::new(32.0, 32.0);
 
-	let mut game_map = Map::from_file("maps/map1.txt").await;
+	// Initial state
+	let mut current_state = GameState::GamePlay;
+	let mut current_map: i32 = 1;
 
+	// Create a player
+	let mut player = Player::new();
+
+	// Load a map
+	let mut game_map = Map::from_file(map_file(current_map)).await;
+
+	// Main loop.
 	loop {
-		match current_screen {
+
+		// Do different rendering depending on state.
+		match current_state {
 			GameState::GamePlay => {
+
 				clear_background(SKYBLUE);
 
 				// Update the player
-				let commands = player.update(&game_map);
+				let mut commands = player.update(&game_map);
 
-				// We own the map object so we need to change it.
+				// Draw the map
+				game_map.draw();
+				player.draw();
+
+				draw_debug(&mut player);
+
+				commands.extend(handle_keyboard_input(&mut player, &game_map));
+
+				// Execute commands.
 				for command in commands {
 					match command {
 						Command::RemoveEntity(ch, tile_x, tile_y) => {
 							game_map.remove_entity(ch, tile_x, tile_y);
 						},
-						Command::DisplayWinScreen(_tile_x, _tile_y) => {
-							current_screen = GameState::WinScreen;
+						Command::LoadNextMap(_tile_x, _tile_y) => {
+							if !next_map_exists(current_map) {
+								current_state = GameState::WinScreen;
+							} else {
+								current_map += 1;
+								game_map = Map::from_file(map_file(current_map)).await;
+								// reset player position.
+								player.reset();
+							}
+						},
+						Command::ResetMap() => {
+							game_map = Map::from_file(map_file(current_map)).await;
+							// reset player position.
+							player.reset();
+						},
+						Command::Exit() => {
+							break;
 						}
 					}
-				}
-				
-				// Draw the map
-				game_map.draw(32.0);
-
-				let fps = get_fps();
-
-				// Example draw for the player:
-				draw_rectangle(player.x, player.y, 32.0, 32.0, YELLOW);
-
-				draw_text(
-					format!("Toggle gravity using G key. Press ESC to quit. Gravity: {} vx: {} vy: {} g: {} fps: {}", if player.gravity() > 0.0 { "on" } else { "off" }, player.vx(), player.vy(), player.gravity(), fps).as_str(),
-					20.0,
-					20.0,
-					24.0,
-					WHITE,
-				);
-
-				if is_key_down(KeyCode::Escape) {
-					break;
-				}
-
-				if is_key_down(KeyCode::Space) {
-					player.jump(&game_map);
-				}
-
-				if is_key_down(KeyCode::Left) {
-					player.move_left()
-				}
-				if is_key_down(KeyCode::Right) {
-					player.move_right()
-				}
-				if is_key_down(KeyCode::Up) {
-					player.move_up(&game_map)
-				}
-				if is_key_down(KeyCode::Down) {
-					player.move_down()
 				}
 			}
 			GameState::WinScreen => {
@@ -93,6 +90,56 @@ async fn main() {
 		// Next frame
 		next_frame().await;
 	}
+}
+
+fn handle_keyboard_input(player: &mut Player, game_map: &Map) -> Vec<Command> {
+
+	let mut ret: Vec<Command> = Vec::new();
+
+	// Handle all keyboard interactions.
+	if is_key_down(KeyCode::Escape) {
+		ret.push(Command::Exit());
+	}
+	if is_key_down(KeyCode::Space) {
+		player.jump(&game_map);
+	}
+	if is_key_down(KeyCode::Left) {
+		player.move_left()
+	}
+	if is_key_down(KeyCode::Right) {
+		player.move_right()
+	}
+	if is_key_down(KeyCode::Up) {
+		player.move_up(&game_map)
+	}
+	if is_key_down(KeyCode::Down) {
+		player.move_down()
+	}
+	if is_key_down(KeyCode::R) {
+		ret.push(Command::ResetMap());
+	}
+
+	return ret;
+}
+
+fn draw_debug(player: &mut Player) {
+	let fps = get_fps();
+	// Debug output
+	draw_text(
+		format!("Press R to restart level. Press ESC to quit. Gravity: {} vx: {} vy: {} g: {} fps: {}", if player.gravity() > 0.0 { "on" } else { "off" }, player.vx(), player.vy(), player.gravity(), fps).as_str(),
+		20.0,
+		20.0,
+		24.0,
+		WHITE,
+	);
+}
+
+fn map_file(map_num: i32) -> String {
+	format!("maps/map{}.txt", map_num)
+}
+
+fn next_map_exists(map_num: i32) -> bool {
+	Path::new(&map_file(map_num + 1)).exists()
 }
 
 /// Optional: window configuration function

@@ -1,5 +1,7 @@
 
 pub enum Command {
 	RemoveEntity(char, usize, usize),
-	DisplayWinScreen(usize, usize),
+	LoadNextMap(usize, usize),
+	Exit(),
+	ResetMap(),
 }
