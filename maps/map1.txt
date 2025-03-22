@@ -4,17 +4,20 @@ x                       x              x
 x                       x              x
 x                       x              x
 x                       x              x
-x                x      x             px
+x                x      xq            px
 x                       xxxx xxxxxxxxxxx
 x                       x    g       x x
-x                       x              x
+x   ccccc               x              x
 x   xxxxx               x  x           x
 x   xxxxx                   x         xx
 x   xxxxx                   x          x
 xxxxxxxxx                   x          x
 x                           x          x
 x                x          x          x
-x         x xxxx            x         gx
+x         x xxxx           gx          x
 x                          xx          x
 x                                      x
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+[p] map2.txt
+[q] map3.txt

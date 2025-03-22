@@ -1,20 +1,22 @@
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-x x x    g      x                      x
-x x         x        x  x              x
-x x               xx    x              x
-x x                   x x              x
-x x        x            x              x
-x x                  x  x             px
-x x      x              xxxx xxxxxxxxxxx
-x x                     x    g       x x
-x xx          x         x              x
-x  xxxxxx               x  x           x
-x  xxxxxx                   x         xx
-x   g xxx          x        x          x
-x      xxxx                 x          x
-xxxxxx                                 x
-x    x           x          xx         x
+x.x x    g      x                      x
+x.x         x        x  x              x
+x.x               xx    x              x
+x.x                   x x              x
+x.x        x            x              x
+x.x                  x  x             px
+x.x      x              xxxx xxxxxxxxxxx
+x.x                     x    g       x x
+x.xx          x         x              x
+x..xxxxxx               x  x           x
+x..xxxxxx                   x         xx
+x.....xxx          x        x          x
+x......xxxx                 x          x
+xxxxxx.                                x
+x    x.          x          xx         x
 x    x                      x          x
 x    x                     xx          x
-x   g                       x          x
+x                           x          x
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+[p] map3.txt

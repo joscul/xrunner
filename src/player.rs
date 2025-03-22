@@ -10,6 +10,8 @@ pub struct Player {
 	pub vy: f32,
 	pub g: f32,
 	sprite_bg1: Texture2D,
+	pub can_portal: bool,
+	pub coins: i32,
 }
 
 impl Player {
@@ -21,7 +23,7 @@ impl Player {
 		sprite_bg1.set_filter(FilterMode::Nearest);
 
 		Player {
-			x: Map::TILE_SIZE, y: Map::TILE_SIZE, vx: 0.0, vy: 0.0, g: 0.1, sprite_bg1: sprite_bg1,
+			x: Map::TILE_SIZE, y: Map::TILE_SIZE, vx: 0.0, vy: 0.0, g: 0.1, sprite_bg1: sprite_bg1, can_portal: false, coins: 0,
 		}
 	}
 
@@ -38,24 +40,59 @@ impl Player {
 		let mut commands = Vec::new();
 
 		// check if we have a collision with an entity.
-		match map.raycast_any((self.center_x(), self.center_y()), (0.0, 1.0), 100.0, 'g') {
-			Some((dist, tile_x, tile_y)) => {
-				if dist <= 16.0 {
-					self.gravity_toggle();
-					commands.push(Command::RemoveEntity('g', tile_x, tile_y));
-				}
-			}
+		match map.get_solid(self.center_x(), self.center_y(), 'g') {
+			Some((_x, _y, tile_x, tile_y)) => {
+				self.gravity_toggle();
+				commands.push(Command::RemoveEntity('g', tile_x, tile_y));
+			},
 			None => {
 			}
 		}
 
-		match map.raycast_any((self.center_x(), self.center_y()), (0.0, 1.0), 100.0, 'p') {
-			Some((dist, tile_x, tile_y)) => {
-				if dist <= 16.0 {
-					commands.push(Command::LoadNextMap(tile_x, tile_y));
+		// or we are in a fire.
+		match map.get_solid(self.center_x(), self.center_y(), 'f') {
+			Some((_x, _y, _tile_x, _tile_y)) => {
+				commands.push(Command::ResetMap());
+			},
+			None => {
+			}
+		}
+
+		// or we are in coin.
+		match map.get_solid(self.center_x(), self.center_y(), 'c') {
+			Some((_x, _y, tile_x, tile_y)) => {
+				commands.push(Command::RemoveEntity('c', tile_x, tile_y));
+				self.add_coins(1);
+			},
+			None => {
+			}
+		}
+
+		// or with a portal.
+		if self.can_portal {
+			for solid in ['p', 'q', 's'].iter() {
+				match map.get_solid(self.center_x(), self.center_y(), *solid) {
+					Some((_x, _y, _tile_x, _tile_y)) => {
+						match map.get_mapping(*solid) {
+							Some(next_map) => {
+								commands.push(Command::LoadMap(next_map.to_string()));
+							},
+							None => {
+								commands.push(Command::LoadNextMap(0, 0));
+							}
+						}
+					},
+					None => {
+					}
 				}
 			}
-			None => {
+		} else {
+			match map.get_solid(self.center_x(), self.center_y(), ' ') {
+				Some((_x, _y, _tile_x, _tile_y)) => {
+					self.can_portal = true;
+				},
+				None => {
+				}
 			}
 		}
 
@@ -75,6 +112,7 @@ impl Player {
 		self.vx = 0.0;
 		self.vy = 0.0;
 		self.g = 0.1;
+		self.can_portal = false;
 	}
 
 	fn update_with_gravity(&mut self, map: &Map) {
@@ -353,7 +391,7 @@ impl Player {
 	}
 
 	pub fn center_y(&self) -> f32 {
-		return self.y - 16.0;
+		return self.y + 16.0;
 	}
 
 	pub fn left(&self) -> f32 {
@@ -387,6 +425,19 @@ impl Player {
 	pub fn gravity_toggle(&mut self) {
 		if self.g > 0.0 {
 			self.g = 0.0;
+			if self.vx.abs() > self.vy.abs() {
+				if self.vx > 0.0 {
+					self.vx = 6.0;
+				} else {
+					self.vx = -6.0;
+				}
+			} else {
+				if self.vy > 0.0 {
+					self.vy = 6.0;
+				} else {
+					self.vy = -6.0;
+				}
+			}
 		} else {
 			self.g = 0.1;
 		}
@@ -414,6 +465,14 @@ impl Player {
 				..Default::default()
 			},
 		);
+	}
+
+	fn add_coins(&mut self, num: i32) {
+		self.coins += num;
+	}
+
+	pub fn coins(&self) -> i32 {
+		return self.coins;
 	}
 
 

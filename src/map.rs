@@ -1,11 +1,13 @@
 
 use macroquad::prelude::*;
+use std::collections::HashMap;
 
 pub struct Map {
 	pub tiles: Vec<Vec<char>>,
 	pub width: usize,
 	pub height: usize,
 	sprite_bg1: Texture2D,
+	mappings: HashMap<char, String>,
 }
 
 impl Map {
@@ -14,15 +16,14 @@ impl Map {
 
 	pub async fn from_file(path: String) -> Self {
 
+		println!("Loading map {}", path);
+
 		let sprite_bg1 = load_texture("sprites/bg1.png").await.unwrap();
 		sprite_bg1.set_filter(FilterMode::Nearest);
 
 		let content = std::fs::read_to_string(path).unwrap();
 
-		let tiles: Vec<Vec<char>> = content
-			.lines()
-			.map(|line| line.chars().collect())
-			.collect();
+		let (tiles, mappings) = Self::parse_map(&content);
 
 		let height = tiles.len();
 		let width = if height > 0 {
@@ -36,7 +37,47 @@ impl Map {
 			width,
 			height,
 			sprite_bg1,
+			mappings,
 		}
+	}
+
+	fn parse_map(content: &str) -> (Vec<Vec<char>>, HashMap<char, String>) {
+		let lines = content.lines();
+
+		// Separate map and metadata sections
+		let mut tile_lines = Vec::new();
+		let mut metadata_lines = Vec::new();
+		let mut in_metadata = false;
+
+		for line in lines {
+			if line.trim().is_empty() {
+				in_metadata = true;
+				continue;
+			}
+			if in_metadata {
+				metadata_lines.push(line);
+			} else {
+				tile_lines.push(line);
+			}
+		}
+
+		// Parse the tile map
+		let tiles: Vec<Vec<char>> = tile_lines
+			.iter()
+			.map(|line| line.chars().collect())
+			.collect();
+
+		// Parse the metadata
+		let mut metadata = HashMap::new();
+		for line in metadata_lines {
+			if let Some((key_part, value_part)) = line.split_once(']') {
+				if let Some(symbol) = key_part.trim_start_matches('[').chars().next() {
+					metadata.insert(symbol, value_part.trim().to_string());
+				}
+			}
+		}
+
+		(tiles, metadata)
 	}
 
 	pub fn draw(&self) {
@@ -49,6 +90,12 @@ impl Map {
 				match tile {
 					' ' => {
 						draw_rectangle(x, y, Self::TILE_SIZE, Self::TILE_SIZE, SKYBLUE);
+					}
+					'.' => {
+						draw_rectangle(x, y, Self::TILE_SIZE, Self::TILE_SIZE, BLUE);
+					}
+					'f' => {
+						self.texture_rot(self.sprite_bg1, x, y, 1, 7, 0.0);
 					}
 					'x' => {
 						let (u1, _u2, r1, d1, l1) = self.get_solid_tile_context(row_index, col_index);
@@ -65,12 +112,16 @@ impl Map {
 						else if u1 && !r1 && d1 && !l1 { self.texture_rot(self.sprite_bg1, x, y, 4, 5, 0.0); }
 						else if u1 && !r1 && d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 5, 5, 0.0); }
 						else if u1 && r1 && !d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 4, 5, 270.0); }
+						else if u1 && r1 && !d1 && !l1 { self.texture_rot(self.sprite_bg1, x, y, 4, 5, 270.0); }
 						else if u1 && r1 && d1 && l1 { self.texture_rot(self.sprite_bg1, x, y, 11, 1, 180.0); }
 						else if u1 && r1 && d1 && !l1 { self.texture_rot(self.sprite_bg1, x, y, 4, 5, 0.0); }
 						else { self.texture(self.sprite_bg1, x, y, 3, 0); }
 					}
 					'g' => {
-						self.texture_rot(self.sprite_bg1, x, y, 10, 7, 0.0);
+						self.texture_rot(self.sprite_bg1, x, y, 0, 7, 0.0);
+					}
+					'c' => {
+						self.texture_rot(self.sprite_bg1, x, y, 0, 6, 0.0);
 					}
 					_ => {
 						draw_rectangle(x, y, Self::TILE_SIZE, Self::TILE_SIZE, PINK);
@@ -248,9 +299,8 @@ impl Map {
 			return None;
 		}
 
-
 		match self.tiles[tile_y][tile_x] {
-			tile if tile == solid   => {
+			tile if tile == solid => {
 				return Some(((tile_x as f32) * Self::TILE_SIZE, (tile_y as f32) * Self::TILE_SIZE, tile_x, tile_y))
 			}
 			_ => {
@@ -268,6 +318,10 @@ impl Map {
 				}
 			}
 		}
+	}
+
+	pub fn get_mapping(&self, tile : char) -> Option<&String> {
+		return self.mappings.get(&tile);
 	}
 }
 

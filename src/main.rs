@@ -54,9 +54,11 @@ async fn main() {
 				for command in commands {
 					match command {
 						Command::RemoveEntity(ch, tile_x, tile_y) => {
+							println!("Command::RemoveEntity");
 							game_map.remove_entity(ch, tile_x, tile_y);
 						},
 						Command::LoadNextMap(_tile_x, _tile_y) => {
+							println!("Command::LoadNextMap");
 							if !next_map_exists(current_map) {
 								current_state = GameState::WinScreen;
 							} else {
@@ -66,12 +68,25 @@ async fn main() {
 								player.reset();
 							}
 						},
+						Command::LoadMap(map_file) => {
+							println!("Command::LoadMap");
+							if !map_exists(&map_file) {
+								current_state = GameState::WinScreen;
+							} else {
+								let map_path = format!("maps/{}", map_file);
+								game_map = Map::from_file(map_path).await;
+								// reset player position.
+								player.reset();
+							}
+						},
 						Command::ResetMap() => {
+							println!("Command::ResetMap");
 							game_map = Map::from_file(map_file(current_map)).await;
 							// reset player position.
 							player.reset();
 						},
 						Command::Exit() => {
+							println!("Command::Exit");
 							current_state = GameState::Exit;
 						}
 					}
@@ -130,7 +145,7 @@ fn draw_debug(player: &mut Player) {
 	let fps = get_fps();
 	// Debug output
 	draw_text(
-		format!("Press R to restart level. Press ESC to quit. Gravity: {} vx: {} vy: {} g: {} fps: {}", if player.gravity() > 0.0 { "on" } else { "off" }, player.vx(), player.vy(), player.gravity(), fps).as_str(),
+		format!("Coins: {}, Press R to restart level. Press ESC to quit. Gravity: {} vx: {} vy: {} g: {} fps: {}", player.coins(), if player.gravity() > 0.0 { "on" } else { "off" }, player.vx(), player.vy(), player.gravity(), fps).as_str(),
 		20.0,
 		20.0,
 		24.0,
@@ -144,6 +159,11 @@ fn map_file(map_num: i32) -> String {
 
 fn next_map_exists(map_num: i32) -> bool {
 	Path::new(&map_file(map_num + 1)).exists()
+}
+
+fn map_exists(map_file: &String) -> bool {
+	let path_string = format!("maps/{}", map_file);
+	return Path::new(&path_string).exists()
 }
 
 /// Optional: window configuration function

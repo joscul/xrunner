@@ -1,0 +1,22 @@
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+xs     x                               x
+xxxxx  x       x  x                    x
+x                          x           x
+x         x       xxxx                 x
+x    x                           xxx xxx
+x    xxxx        x       x       x     x
+x    x                x   x      xxxxxxx
+x         cccccccccccccccccccccc      cx
+x     xxxxffffffffffffffffffffffxffffffx
+x     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+x                      x               x
+x                      x               x
+xxxxxxxxx                              x
+x                g                     x
+x                x                     x
+x         x xxxx                       x
+x                       x              x
+x                                      x
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+s -> map1.txt
