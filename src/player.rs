@@ -40,59 +40,77 @@ impl Player {
 		let mut commands = Vec::new();
 
 		// check if we have a collision with an entity.
-		match map.get_solid(self.center_x(), self.center_y(), 'g') {
-			Some((_x, _y, tile_x, tile_y)) => {
-				self.gravity_toggle();
-				commands.push(Command::RemoveEntity('g', tile_x, tile_y));
-			},
-			None => {
+		for corner in self.corners() {
+			match map.get_solid(corner.0, corner.1, 'g') {
+				Some((_x, _y, tile_x, tile_y)) => {
+					self.gravity_toggle();
+					commands.push(Command::RemoveEntity('g', tile_x, tile_y));
+					break;
+				},
+				None => {
+				}
 			}
 		}
 
 		// or we are in a fire.
-		match map.get_solid(self.center_x(), self.center_y(), 'f') {
-			Some((_x, _y, _tile_x, _tile_y)) => {
-				commands.push(Command::ResetMap());
-			},
-			None => {
+		for corner in self.corners() {
+			match map.get_solid(corner.0, corner.1, 'f') {
+				Some((_x, _y, _tile_x, _tile_y)) => {
+					commands.push(Command::ResetMap());
+					break;
+				},
+				None => {
+				}
 			}
 		}
 
 		// or we are in coin.
-		match map.get_solid(self.center_x(), self.center_y(), 'c') {
-			Some((_x, _y, tile_x, tile_y)) => {
-				commands.push(Command::RemoveEntity('c', tile_x, tile_y));
-				self.add_coins(1);
-			},
-			None => {
+		for corner in self.corners() {
+			match map.get_solid(corner.0, corner.1, 'c') {
+				Some((_x, _y, tile_x, tile_y)) => {
+					commands.push(Command::RemoveEntity('c', tile_x, tile_y));
+					self.add_coins(1);
+					break;
+				},
+				None => {
+				}
 			}
 		}
 
 		// or with a portal.
 		if self.can_portal {
 			for solid in ['p', 'q', 's'].iter() {
-				match map.get_solid(self.center_x(), self.center_y(), *solid) {
-					Some((_x, _y, _tile_x, _tile_y)) => {
-						match map.get_mapping(*solid) {
-							Some(next_map) => {
-								commands.push(Command::LoadMap(next_map.to_string()));
-							},
-							None => {
-								commands.push(Command::LoadNextMap(0, 0));
+				for corner in self.corners() {
+					match map.get_solid(corner.0, corner.1, *solid) {
+						Some((_x, _y, _tile_x, _tile_y)) => {
+							match map.get_mapping(*solid) {
+								Some(next_map) => {
+									commands.push(Command::LoadMap(next_map.to_string()));
+									break;
+								},
+								None => {
+									break;
+								}
 							}
+						},
+						None => {
 						}
+					}
+				}
+			}
+		} else {
+			let mut corner_count = 0;
+			for corner in self.corners() {
+				match map.get_solid(corner.0, corner.1, ' ') {
+					Some((_x, _y, _tile_x, _tile_y)) => {
+						corner_count += 1;
 					},
 					None => {
 					}
 				}
 			}
-		} else {
-			match map.get_solid(self.center_x(), self.center_y(), ' ') {
-				Some((_x, _y, _tile_x, _tile_y)) => {
-					self.can_portal = true;
-				},
-				None => {
-				}
+			if corner_count == 4 {
+				self.can_portal = true;
 			}
 		}
 
@@ -339,7 +357,7 @@ impl Player {
 				}
 			}
 			if distance == 0.0 {
-				self.vy = -4.1;
+				self.vy = -4.1 * 0.65;
 			}
 		}
 	}
@@ -386,11 +404,11 @@ impl Player {
 		}
 	}
 
-	pub fn center_x(&self) -> f32 {
+	pub fn _center_x(&self) -> f32 {
 		return self.x + 16.0;
 	}
 
-	pub fn center_y(&self) -> f32 {
+	pub fn _center_y(&self) -> f32 {
 		return self.y + 16.0;
 	}
 
@@ -473,6 +491,20 @@ impl Player {
 
 	pub fn coins(&self) -> i32 {
 		return self.coins;
+	}
+
+	fn corners(&self) -> Vec<(f32, f32)> {
+		let top_left = (self.left() + 1.0, self.top() + 1.0);
+		let top_right = (self.right() - 1.0, self.top() + 1.0);
+		let bottom_left = (self.left() + 1.0, self.bottom() - 1.0);
+		let bottom_right = (self.right() - 1.0, self.bottom() - 1.0);
+
+		vec![
+			top_left,
+			top_right,
+			bottom_left,
+			bottom_right,
+		]
 	}
 
 

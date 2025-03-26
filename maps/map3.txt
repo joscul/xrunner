@@ -1,10 +1,10 @@
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 xs     x                               x
-xxxxx  x       x  x                    x
+xxxxx  x    x x x x                    x
 x                          x           x
 x         x       xxxx                 x
 x    x                           xxx xxx
-x    xxxx        x       x       x     x
+x    xxxx        x       x       x    qx
 x    x                x   x      xxxxxxx
 x         cccccccccccccccccccccc      cx
 x     xxxxffffffffffffffffffffffxffffffx
@@ -19,4 +19,5 @@ x                       x              x
 x                                      x
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-s -> map1.txt
+[s] map1.txt
+[q] win

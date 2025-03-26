@@ -1,23 +1,24 @@
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-x     cccccccc                         x
+x   x           xq      x   cccccccccc x
 x                       x              x
 x                       x              x
 x                       x              x
-x                       x              x
-x                x      xq            px
-x                       xxxx xxxxxxxxxxx
-x   ccccc               x    g       x x
-x   ccccc               x              x
-x   xxxxx               x  x           x
-x   xxxxx                   x         xx
+x                c      x              x
+x                x      x             px
+x                       xxxxcxxxxxxxxxxx
+x                       x   cg       x x
+x   ccccc               x    c         x
+x   ccccc               x  x c         x
+x   ccccc                   xc        xx
 x   xxxxx                   x          x
 xxxxxxxxx                   x          x
-x                           x          x
+xs                          x          x
 x                x          x          x
 x         x xxxx           gx          x
 x                          xx          x
-x                                      x
+x                         x            x
 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 [p] map2.txt
 [q] map3.txt
+[s] map4.txt

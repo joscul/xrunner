@@ -1,0 +1,23 @@
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+x      cccccc   x        x    cccccccc x
+xx                      xx             x
+x               x          xxx         x
+x     c         x                      x
+x     x      c  x         cccc         x
+x         xxxx  x       xxxx     c     x
+x                       x       xxxx   x
+x      c         c      xcg           xx
+x     xxxx     xxxxx    x     ccc      x
+x               x       x     x        x
+x     c         x            gx   c    x
+xx   xxx        x      c     xx xxxx  xx
+x               x     xxx              x
+x        cccc   x        x   xxxxx     x
+x        xxxx   x        x             x
+x    x          xxxxxxxxxxxxxxxxxxxxxxxx
+x                          x           x
+x   c   x                  x     c     x
+x   xxxx       s           xxxxxxxxxxxxx
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+[s] win

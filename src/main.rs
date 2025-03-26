@@ -22,13 +22,13 @@ async fn main() {
 
 	// Initial state
 	let mut current_state = GameState::GamePlay;
-	let mut current_map: i32 = 1;
+	let mut current_map: String = String::from("map1.txt");
 
 	// Create a player
 	let mut player = Player::new().await;
 
 	// Load a map
-	let mut game_map = Map::from_file(map_file(current_map)).await;
+	let mut game_map = Map::from_file(map_file(&current_map)).await;
 
 	// Main loop.
 	loop {
@@ -57,31 +57,20 @@ async fn main() {
 							println!("Command::RemoveEntity");
 							game_map.remove_entity(ch, tile_x, tile_y);
 						},
-						Command::LoadNextMap(_tile_x, _tile_y) => {
-							println!("Command::LoadNextMap");
-							if !next_map_exists(current_map) {
-								current_state = GameState::WinScreen;
-							} else {
-								current_map += 1;
-								game_map = Map::from_file(map_file(current_map)).await;
-								// reset player position.
-								player.reset();
-							}
-						},
-						Command::LoadMap(map_file) => {
+						Command::LoadMap(file_name) => {
 							println!("Command::LoadMap");
-							if !map_exists(&map_file) {
+							if !map_exists(&file_name) {
 								current_state = GameState::WinScreen;
 							} else {
-								let map_path = format!("maps/{}", map_file);
-								game_map = Map::from_file(map_path).await;
+								current_map = file_name;
+								game_map = Map::from_file(map_file(&current_map)).await;
 								// reset player position.
 								player.reset();
 							}
 						},
 						Command::ResetMap() => {
 							println!("Command::ResetMap");
-							game_map = Map::from_file(map_file(current_map)).await;
+							game_map = Map::from_file(map_file(&current_map)).await;
 							// reset player position.
 							player.reset();
 						},
@@ -153,16 +142,12 @@ fn draw_debug(player: &mut Player) {
 	);
 }
 
-fn map_file(map_num: i32) -> String {
-	format!("maps/map{}.txt", map_num)
+fn map_file(file_name: &String) -> String {
+	format!("maps/{}", file_name)
 }
 
-fn next_map_exists(map_num: i32) -> bool {
-	Path::new(&map_file(map_num + 1)).exists()
-}
-
-fn map_exists(map_file: &String) -> bool {
-	let path_string = format!("maps/{}", map_file);
+fn map_exists(file_name: &String) -> bool {
+	let path_string = map_file(file_name);
 	return Path::new(&path_string).exists()
 }
 
