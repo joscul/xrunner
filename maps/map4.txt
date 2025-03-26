@@ -1,0 +1,24 @@
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+x                                    qx
+x          x                          x
+x   f   x                             x
+x  x             f                    x
+x                                     x
+x           x                         x
+x   x     x                           x
+x         fxxffxxff xxxxxxxxxxxxxxxxxxx
+x     xxg          fx                 x
+x       x  x        x                 x
+x                ff x                 x
+x         x   xxxx  x                 x
+x                   x                 x
+x              f    x                 x
+x            f    x    x              x
+x      xxxx           x               x
+x             f  f     fffffff       px
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+[p] map5.txt
+[q] map6.txt
+
+

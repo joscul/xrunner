@@ -12,6 +12,8 @@ pub struct Player {
 	sprite_bg1: Texture2D,
 	pub can_portal: bool,
 	pub coins: i32,
+        pub spawn_x: i32,
+        pub spawn_y: i32,
 }
 
 impl Player {
@@ -21,9 +23,18 @@ impl Player {
 
 		let sprite_bg1 = load_texture("sprites/bg1.png").await.unwrap();
 		sprite_bg1.set_filter(FilterMode::Nearest);
-
+                for solid in ['P', 'Q', 'S'].iter(){
+                    match map.get_solid(self.center_x(), self.center_y(), *solid){
+                        some((x, y, _tile_x, _tile_y) => {
+                            self.spawn_x = x;
+                            self.spawn_y = y;
+                        },
+                        None => { 
+                        }
+                    }
+                }
 		Player {
-			x: Map::TILE_SIZE, y: Map::TILE_SIZE, vx: 0.0, vy: 0.0, g: 0.1, sprite_bg1: sprite_bg1, can_portal: false, coins: 0,
+			x: self.spawn_x, y: self_spawn_y, vx: 0.0, vy: 0.0, g: 0.1, sprite_bg1: sprite_bg1, can_portal: false, coins: 0,
 		}
 	}
 
@@ -339,7 +350,7 @@ impl Player {
 				}
 			}
 			if distance == 0.0 {
-				self.vy = -4.1;
+				self.vy = -4.1*0.65;
 			}
 		}
 	}
