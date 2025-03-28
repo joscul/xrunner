@@ -323,6 +323,18 @@ impl Map {
 	pub fn get_mapping(&self, tile : char) -> Option<&String> {
 		return self.mappings.get(&tile);
 	}
+
+	pub fn find_portal_coordinates(&self, portal_char : char) -> Option<(f32, f32)> {
+		for (row_index, row) in self.tiles.iter().enumerate() {
+			for (col_index, &tile) in row.iter().enumerate() {
+				if tile == portal_char {
+					return Some((col_index as f32 * Self::TILE_SIZE, row_index as f32 * Self::TILE_SIZE));
+				}
+			}
+		}
+
+		return None;
+	}
 }
 
 #[cfg(test)]

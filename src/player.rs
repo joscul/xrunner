@@ -12,6 +12,8 @@ pub struct Player {
 	sprite_bg1: Texture2D,
 	pub can_portal: bool,
 	pub coins: i32,
+	pub spawn_x: f32,
+	pub spawn_y: f32,
 }
 
 impl Player {
@@ -22,8 +24,20 @@ impl Player {
 		let sprite_bg1 = load_texture("sprites/bg1.png").await.unwrap();
 		sprite_bg1.set_filter(FilterMode::Nearest);
 
+		let spawn_x = Map::TILE_SIZE;
+		let spawn_y = Map::TILE_SIZE;
+
 		Player {
-			x: Map::TILE_SIZE, y: Map::TILE_SIZE, vx: 0.0, vy: 0.0, g: 0.1, sprite_bg1: sprite_bg1, can_portal: false, coins: 0,
+			x: spawn_x,
+			y: spawn_y,
+			vx: 0.0,
+			vy: 0.0,
+			g: 0.1,
+			sprite_bg1: sprite_bg1,
+			can_portal: false,
+			coins: 0,
+			spawn_x: spawn_x,
+			spawn_y: spawn_y,
 		}
 	}
 
@@ -85,7 +99,7 @@ impl Player {
 						Some((_x, _y, _tile_x, _tile_y)) => {
 							match map.get_mapping(*solid) {
 								Some(next_map) => {
-									commands.push(Command::LoadMap(next_map.to_string()));
+									commands.push(Command::LoadMap(next_map.to_string(), *solid));
 									break;
 								},
 								None => {
@@ -125,8 +139,8 @@ impl Player {
 	}
 
 	pub fn reset(&mut self) {
-		self.x = Map::TILE_SIZE;
-		self.y = Map::TILE_SIZE;
+		self.x = self.spawn_x;
+		self.y = self.spawn_y;
 		self.vx = 0.0;
 		self.vy = 0.0;
 		self.g = 0.1;
@@ -505,6 +519,11 @@ impl Player {
 			bottom_left,
 			bottom_right,
 		]
+	}
+
+	pub fn set_spawn_pos(&mut self, pos: (f32, f32)) {
+		self.spawn_x = pos.0;
+		self.spawn_y = pos.1;
 	}
 
 

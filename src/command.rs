@@ -1,7 +1,7 @@
 
 pub enum Command {
 	RemoveEntity(char, usize, usize),
-	LoadMap(String),
+	LoadMap(String, char),
 	Exit(),
 	ResetMap(),
 }

@@ -57,13 +57,21 @@ async fn main() {
 							println!("Command::RemoveEntity");
 							game_map.remove_entity(ch, tile_x, tile_y);
 						},
-						Command::LoadMap(file_name) => {
+						Command::LoadMap(file_name, exit_portal) => {
 							println!("Command::LoadMap");
 							if !map_exists(&file_name) {
 								current_state = GameState::WinScreen;
 							} else {
 								current_map = file_name;
 								game_map = Map::from_file(map_file(&current_map)).await;
+								match game_map.find_portal_coordinates(exit_portal) {
+									Some((x, y)) => {
+										player.set_spawn_pos((x, y));
+									},
+									None => {
+										player.set_spawn_pos((Map::TILE_SIZE, Map::TILE_SIZE));
+									}
+								}
 								// reset player position.
 								player.reset();
 							}
